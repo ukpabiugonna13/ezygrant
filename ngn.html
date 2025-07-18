@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>grant Naira Wallet - Demo</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 400px;
+      margin: 40px auto;
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 0 10px #ccc;
+    }
+    h2 {
+      text-align: center;
+      color: #059669;
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background: #059669;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #047857;
+    }
+    .hidden {
+      display: none;
+    }
+    .balance {
+      font-size: 1.5em;
+      color: #333;
+      text-align: center;
+      margin: 20px 0;
+    }
+    .nav {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 20px;
+    }
+    .nav button {
+      flex: 1;
+      margin: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="signup">
+    <h2>Create grant Naira Account</h2>
+    <input type="text" id="signupName" placeholder="Full Name" required />
+    <input type="email" id="signupEmail" placeholder="Email" required />
+    <input type="tel" id="signupPhone" placeholder="Phone Number" required />
+    <button onclick="registerUser()">Sign Up</button>
+    <p>Already have an account? <a href="#" onclick="showLogin()">Login here</a></p>
+  </div>
+
+  <div class="container hidden" id="login">
+    <h2>Login</h2>
+    <input type="tel" id="loginPhone" placeholder="Phone Number" required />
+    <button onclick="loginUser()">Login</button>
+    <p>Don't have an account? <a href="#" onclick="showSignup()">Sign up</a></p>
+  </div>
+
+  <div class="container hidden" id="dashboard">
+    <h2>Welcome, <span id="userName"></span></h2>
+    <div class="balance">Balance: ₦<span id="userBalance">0</span></div>
+    <input type="tel" id="transferPhone" placeholder="Recipient Phone Number" />
+    <input type="number" id="transferAmount" placeholder="Amount to Transfer" />
+    <button onclick="transferMoney()">Send Money</button>
+    <div class="nav">
+      <button onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <script>
+    const users = JSON.parse(localStorage.getItem("users")) || {};
+    let currentUser = null;
+
+    function saveUsers() {
+      localStorage.setItem("users", JSON.stringify(users));
+    }
+
+    function showLogin() {
+      document.getElementById("signup").classList.add("hidden");
+      document.getElementById("login").classList.remove("hidden");
+    }
+
+    function showSignup() {
+      document.getElementById("login").classList.add("hidden");
+      document.getElementById("signup").classList.remove("hidden");
+    }
+
+    function showDashboard() {
+      document.getElementById("signup").classList.add("hidden");
+      document.getElementById("login").classList.add("hidden");
+      document.getElementById("dashboard").classList.remove("hidden");
+      document.getElementById("userName").textContent = currentUser.name;
+      document.getElementById("userBalance").textContent = currentUser.balance;
+    }
+
+    function registerUser() {
+      const name = document.getElementById("signupName").value.trim();
+      const email = document.getElementById("signupEmail").value.trim();
+      const phone = document.getElementById("signupPhone").value.trim();
+
+      if (!name || !email || !phone) {
+        alert("All fields are required.");
+        return;
+      }
+
+      if (users[phone]) {
+        alert("User already exists. Please login.");
+        return;
+      }
+
+      users[phone] = {
+        name,
+        email,
+        phone,
+        balance: 967347600  // Default starting balance
+      };
+
+      saveUsers();
+      alert("Registration successful. You can now login.");
+      showLogin();
+    }
+
+    function loginUser() {
+      const phone = document.getElementById("loginPhone").value.trim();
+
+      if (!users[phone]) {
+        alert("User not found.");
+        return;
+      }
+
+      currentUser = users[phone];
+      showDashboard();
+    }
+
+    function transferMoney() {
+      const recipientPhone = document.getElementById("transferPhone").value.trim();
+      const amount = parseFloat(document.getElementById("transferAmount").value);
+
+      if (!recipientPhone || isNaN(amount) || amount <= 0) {
+        alert("Please enter valid recipient and amount.");
+        return;
+      }
+
+      if (!users[recipientPhone]) {
+        alert("Recipient not found.");
+        return;
+      }
+
+      if (currentUser.balance < amount) {
+        alert("Insufficient balance.");
+        return;
+      }
+
+      currentUser.balance -= amount;
+      users[currentUser.phone].balance = currentUser.balance;
+
+      users[recipientPhone].balance += amount;
+
+      saveUsers();
+
+      document.getElementById("userBalance").textContent = currentUser.balance;
+      alert("Transfer successful!");
+    }
+
+    function logout() {
+      currentUser = null;
+      document.getElementById("dashboard").classList.add("hidden");
+      document.getElementById("login").classList.remove("hidden");
+    }
+  </script>
+</body>
+</html>
